@@ -1,0 +1,7 @@
+# A simple gitignore from the top of my mind. There are better.
+*.cmd
+*.mod.*
+Module.Symvers
+modules.order
+*.o
+*.ko
