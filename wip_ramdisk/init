@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# If ramdisk doesn't come with premade empty proc sys dev folders - you can mkdir them here. 
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t debugfs none /sys/kernel/debug
+
+echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in $(cut -d' ' -f1 /proc/uptime) seconds\n"
+
+# Enable sysfs / dev initial enumeration
+mdev -s
+# Enable hotplugging - without this, the kernel would expect /sbin/hotplug
+echo /sbin/mdev >/proc/sys/kernel/hotplug
+
+# get rid of annoying job control message - it is not really necessary.
+# also this is tailored for our exact scenario where we use the console as ttyS0 - be careful if you copy it to another platform!
+# For a more elegant solution, use cttyhack; https://git.busybox.net/busybox/plain/shell/cttyhack.c?id=dcaed97  
+exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'
+
+# allow doing "bashrc" style stuff like aliases etc.
+export ENV=ronenv # this won't work if we exec - only if we run sh. So if you want - just set it and then run sh yourself. 
+exec /bin/sh
+~               
