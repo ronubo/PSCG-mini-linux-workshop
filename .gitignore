@@ -5,3 +5,9 @@ Module.Symvers
 modules.order
 *.o
 *.ko
+
+linux-*
+busybox-1.*
+initramfs.cpio
+initramfs.gz
+

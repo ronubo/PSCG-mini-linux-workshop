@@ -8,10 +8,14 @@
 # The tasks are deliberately divided into very simple scripts, so that 
 # the student will easily "know what does what" by the script name, without 
 # needing any special documentation, and without having to really look at the presentations
-
+#
 # Will fail if you don't have KV --> if you didnt $ . envsetup.sh first
-cd ${KERNEL_SRC}
-make O=${KERNEL_OUT} defconfig
-make O=${KERNEL_OUT} kvmconfig
-make -j8 O=${KERNEL_OUT}
+#
+# This version now illustrates the use of config fragments, as well as what works well with the make/Kconfig and what doesn't work as well (but is not so important and one can definitely live without)
+make -C ${KERNEL_SRC} O=${KERNEL_OUT} defconfig kvmconfig
+cd ${KERNEL_OUT}
+${KERNEL_SRC}/scripts/kconfig/merge_config.sh .config ${LABS}/kernel-configs/kernel-debug-fragment.config
+make -j${JOBS}
 cd -
+
+# NOTE: As per 5.3-rc3, merge_config.sh doesn't work as you would expect out of a kernel tree - so we change directory there. It's easy to see why in the script file itself. Care enough to fix and upstream?
