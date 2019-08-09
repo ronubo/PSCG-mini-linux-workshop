@@ -6,7 +6,12 @@ tar xf busybox-1.30.1.tar.bz2
 cd busybox-1.30.1/
 make defconfig
 sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
+if [ "${ARCH}" == "i386" ] ; then
+CPPFLAGS=-m32 LDFLAGS=-m32 make -j16 CONFIG_PREFIX=../wip_ramdisk install
+else
 make -j16 CONFIG_PREFIX=../wip_ramdisk install
+fi
+
 cd ..
 
 # Create an initial directory structure 
