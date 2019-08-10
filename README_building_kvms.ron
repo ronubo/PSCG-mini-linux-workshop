@@ -1,0 +1,22 @@
+## linux/
+# To build 32bit KVM 
+make O=../out_qemu_x86/ i386_defconfig
+make O=../out_qemu_x86/ kvmconfig # Note it is a PHONY target to make kvm_guest.config
+time make O=../out_qemu_x86/ -j16 
+
+
+# To build 64bit KVM 
+make O=../out_qemu_x86-64 defconfig
+make O=../out_qemu_x86-64 kvmconfig 
+time make O=../out_qemu_x86-64 -j16
+
+## busybox/:
+# To build 32bit
+CPPFLAGS=-m32 LDFLAGS=-m32 make install -j16
+# To build 64bit
+make install 
+
+# Ubuntu build:
+make O=../localmodconfig localmodconfig
+sudo make O=../localmodconfig modules_install
+sudo make O=../localmodconfig install   

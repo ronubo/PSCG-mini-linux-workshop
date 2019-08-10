@@ -1,0 +1,22 @@
+## linux/
+# To build 32bit KVM 
+# might work, or not, depending on your distros KVM. easier (and faster) then ARM versatile/etc. which is stable across versions like an atom bomb.
+KROOT := ~/kernel/linux
+OUT := ~/kernel/out_qemu_i386
+BUSYBOXSRC := ~/kernel/busybox/bbinitramfs-x86/
+BBINITRAMFS := ~/kernel/busybox/initramfs-busybox_i386.cpio.gz
+JOBS := 4
+build:
+	make -C $(KROOT) O=$(OUT) i386_defconfig
+	make -C $(KROOT) O=$(OUT) kvmconfig # Note it is a PHONY target to make kvm_guest.config
+	time make -C $(KROOT) O=$(OUT) -j$(JOBS)
+
+repackage_bb:
+	cd $(BUSYBOXSRC) ; find . -print0     | cpio --null -ov --format=newc     | gzip -9 > $(BBINITRAMFS) ; cd - 
+
+run:
+	kvm  -kernel $(OUT)/arch/x86/boot/bzImage  -initrd $(BBINITRAMFS) -nographic -append "console=ttyS0"
+
+
+
+	
