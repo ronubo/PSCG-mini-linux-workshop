@@ -11,11 +11,9 @@
 #
 # Will fail if you don't have KV --> if you didnt $ . envsetup.sh first
 #
-# This version now illustrates the use of config fragments, as well as what works well with the make/Kconfig and what doesn't work as well (but is not so important and one can definitely live without)
-make -C ${KERNEL_SRC} O=${KERNEL_OUT} defconfig kvmconfig
-cd ${KERNEL_OUT}
-${KERNEL_SRC}/scripts/kconfig/merge_config.sh .config ${LABS}/kernel-configs/kernel-debug-fragment.config
-make -j${JOBS}
-cd -
+# In this version we do not use fragments, but rather build each config for each commit, for simplicity
+# In the master branch, the default is "as easy as it gets". We will add fragments towards the end of our minimal configuration process
+mkdir $KERNEL_OUT
+cp ${LABS}/kernel-configs/our-tiny-config.config ${KERNEL_OUT}/.config
+make -C ${KERNEL_SRC} O=${KERNEL_OUT} -j${JOBS}
 
-# NOTE: As per 5.3-rc3, merge_config.sh doesn't work as you would expect out of a kernel tree - so we change directory there. It's easy to see why in the script file itself. Care enough to fix and upstream?
