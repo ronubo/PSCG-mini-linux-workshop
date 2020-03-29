@@ -1,0 +1,19 @@
+#
+# Busybox inittab file - 
+# if busybox (e.g. /sbin/init/ is the init file (e.g. can't execute /init or the kernel was run with "rdinit=/sbin/init"), 
+# then busybox will parse this file according to its rules.
+# 
+# We can use this file if we have ttys in order to provide and rget rid of the annoying getty messages, e.g. if there is no mdev.
+# if this is what bothers you, and you are interested in a single user mode, you can also add "single" to the command line.
+# Here, since we don't bother to introduce the concept of "runlevels" we virtually do the same thing.
+#
+# There are plenty of examples saying how this works, so we will just illustrate the most trivial concepts:
+#
+# You can also add here your own services if you want
+# e.g., if you wanted to have the banner - you could just cat here, and decide when to run it etc.
+#
+# Our example will now just run sh
+#
+# ::sysinit:/bin/sh		# If the shell exits, it will not be respawned (and there will not be kernel panic, as /sbin/init stil loops
+::respawn:/bin/sh
+
