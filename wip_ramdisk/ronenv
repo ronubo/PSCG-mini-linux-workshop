@@ -1,0 +1,11 @@
+alias psax='ps -o pid,user,tty,stat,time,comm'
+
+hostname pscg-linux # to satisfy the prompt. must be root to run it (although we can add capability, setuid, ...)
+if [ $(id -u) -eq 0 ]; then
+  export PS1='\n\e[31m\e[1m\u@\h\e[0m \e[94m\w \e[31m\e[1m#\e[0m\e[0m\e[39m\e[49m '
+else
+  export PS1='\n\e[92m\e[1m\u@\h\e[0m \e[94m\w \e[92m\e[1m$\e[0m\e[0m\e[39m\e[49m '
+fi
+
+# In busybox this will appear everytime you spawn a shell now... There are nicer way to do it with profile and login shells.
+cat extra/banner
