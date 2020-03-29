@@ -15,5 +15,6 @@
 # In the master branch, the default is "as easy as it gets". We will add fragments towards the end of our minimal configuration process
 mkdir $KERNEL_OUT
 cp ${LABS}/kernel-configs/our-tiny-config.config ${KERNEL_OUT}/.config
+make -C ${KERNEL_SRC} O=${KERNEL_OUT} -j${JOBS} olddefconfig
 make -C ${KERNEL_SRC} O=${KERNEL_OUT} -j${JOBS}
 
