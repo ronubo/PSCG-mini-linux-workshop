@@ -5,6 +5,8 @@
 mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t debugfs none /sys/kernel/debug
+mkdir /tmp
+chmod +t /tmp
 
 echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in $(cut -d' ' -f1 /proc/uptime) seconds\n"
 
@@ -17,7 +19,7 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 # For our framebuffer example, show the splash screen. This is a userspace splash screen, and on the kernel graphics setup we cover the kernel boot logo. 
 # If the call fails (e.g. no framebuffer, or no splash binary) - no harm done, as it is userspace.
 # to avoid calling the splash screen, add "nosplash" to the kernel command line
-grep -q nosplash /proc/cmdline || /usr/bin/psplash
+grep -q nosplash /proc/cmdline || /usr/bin/psplash &
 
 # allow doing "bashrc" style stuff like aliases etc.
 # This can also be done by populating /etc/profile , however I am doing it in the following way for the sake of the example: 

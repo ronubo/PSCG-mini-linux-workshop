@@ -45,7 +45,7 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 # For our framebuffer example, show the splash screen. This is a userspace splash screen, and on the kernel graphics setup we cover the kernel boot logo. 
 # If the call fails (e.g. no framebuffer, or no splash binary) - no harm done, as it is userspace.
 # to avoid calling the splash screen, add "nosplash" to the kernel command line
-grep -q nosplash /proc/cmdline || /usr/bin/psplash
+grep -q nosplash /proc/cmdline || /usr/bin/psplash --timeout 10
 
 # allow doing "bashrc" style stuff like aliases etc.
 # This can also be done by populating /etc/profile , however I am doing it in the following way for the sake of the example: 
