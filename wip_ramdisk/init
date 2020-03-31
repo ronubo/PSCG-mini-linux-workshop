@@ -30,7 +30,7 @@ openvt -c 1 ; openvt -c 2 ;openvt -c 3 ;openvt -c 4 ;openvt -c 42
 # For our framebuffer example, show the splash screen. This is a userspace splash screen, and on the kernel graphics setup we cover the kernel boot logo. 
 # If the call fails (e.g. no framebuffer, or no splash binary) - no harm done, as it is userspace.
 # to avoid calling the splash screen, add "nosplash" to the kernel command line
-grep -q nosplash /proc/cmdline || /usr/bin/psplash & 
+grep -q nosplash /proc/cmdline || /usr/bin/psplash --no-console-switch
 
 
 
