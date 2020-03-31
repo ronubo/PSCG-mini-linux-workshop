@@ -1,0 +1,62 @@
+#
+# Busybox inittab file - 
+# if busybox (e.g. /sbin/init/ is the init file (e.g. can't execute /init or the kernel was run with "rdinit=/sbin/init"), 
+# then busybox will parse this file according to its rules.
+# 
+# We can use this file if we have ttys in order to provide and get rid of the annoying getty messages, e.g. if there is no mdev.
+# if this is what bothers you, and you are interested in a single user mode, you can also add "single" to the command line.
+# Here, since we don't bother to introduce the concept of "runlevels" we virtually do the same thing.
+#
+# There are plenty of examples saying how this works, so we will just illustrate the most trivial concepts:
+#
+# You can also add here your own services if you want
+# e.g., if you wanted to have the banner - you could just cat here, and decide when to run it etc.
+#
+# You should play around with it and learn about the order of execution which we will not explain here.
+# What you should have in mind, is that the device creation etc. is not how you would want to do it in a real system.
+# You are likely to want to execute an init script, and then exec busybox init at its end (instead of the shell as we did before!), so that it will take care of respawning your shells on each tty.
+#
+# Order of execution: sysinit, wait,    once, (askfirst, respawn)
+#                            ^                 ^ 
+#                     synchrounous   asynchrounous (no waits here)
+#
+# Our example will do some of the main things we did in our /init script. We will build up some usage patterns, so that we 
+# can explain more concepts at each commit / see work from the shell when possible, and after a couple of commits
+# and demonstrations we will clean it up.,
+# add to it, and later clean up the usage.
+#
+#
+
+
+# if this is the only init - this will print the banner once and without a visible tty (e.g. your console) you will not see it
+::once:/bin/cat /extra/banner
+
+# if done like this and you exit the shell - you will not get another shell again (it will not be respawned)
+# ::sysinit:/bin/sh 
+
+# if done like this and you exit the shell - you will get another shell:
+# ::respawn:/bin/sh
+
+# We create /tmp so that we can send command to psplash from the shell. You may want to create it at sysinit (but it doesn't matter, as you will normally create and mount everything in a shell script / or populate nodes on the filesystem even prior tot it (old technique, but many still do so)
+::once:/bin/mkdir /tmp
+
+#Create the essential devices
+# Create the tty nodes
+::sysinit:/bin/mknod /dev/tty0 c 4 0
+::sysinit:/bin/mknod /dev/tty1 c 4 1
+::sysinit:/bin/mknod /dev/tty2 c 4 2
+::sysinit:/bin/mknod /dev/tty3 c 4 3
+::sysinit:/bin/mknod /dev/tty4 c 4 4
+::sysinit:/bin/mknod /dev/tty42 c 4 42
+
+::sysinit:/bin/mknod /dev/ttyS0 c 4 64
+::sysinit:/bin/mknod /dev/ttyS1 c 4 65
+::sysinit:/bin/mknod /dev/ttyS2 c 4 66
+::sysinit:/bin/mknod /dev/ttyS3 c 4 67
+
+
+# create the first frame buffer for the splash screen
+::sysinit:/bin/mknod /dev/fb0 c 29 0
+
+::once:/usr/bin/psplash --timeout 60
+
