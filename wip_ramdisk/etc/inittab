@@ -28,17 +28,6 @@
 #
 
 
-# if this is the only init - this will print the banner once and without a visible tty (e.g. your console) you will not see it
-::once:/bin/cat /extra/banner
-
-# if done like this and you exit the shell - you will not get another shell again (it will not be respawned)
-# ::sysinit:/bin/sh 
-
-# if done like this and you exit the shell - you will get another shell:
-# ::respawn:/bin/sh
-
-# We create /tmp so that we can send command to psplash from the shell. You may want to create it at sysinit (but it doesn't matter, as you will normally create and mount everything in a shell script / or populate nodes on the filesystem even prior tot it (old technique, but many still do so)
-::once:/bin/mkdir /tmp
 
 #Create the essential devices
 # Create the tty nodes
@@ -58,5 +47,32 @@
 # create the first frame buffer for the splash screen
 ::sysinit:/bin/mknod /dev/fb0 c 29 0
 
+# /dev/null is needed for getty
+::sysinit:/bin/mknod /dev/null c 1 3
+# we want proc to be able to run ps -o pid,comm,tty and observe the ttys
+::sysinit:/bin/mount -t proc none /proc
+
+
+# We create /tmp so that we can send command to psplash from the shell. You may want to create it at sysinit (but it doesn't matter, as you will normally create and mount everything in a shell script / or populate nodes on the filesystem even prior tot it (old technique, but many still do so)
+::once:/bin/mkdir /tmp
+
 ::once:/usr/bin/psplash --timeout 60
+
+# if this is the only init - this will print the banner once and without a visible tty (e.g. your console) you will not see it
+# Pay attention - since it's once, it will happen after the sysinit. You could have it as sysinit and it will happen before. 
+::once:/bin/cat /extra/banner
+
+
+
+# We respawn he shell on some of the ttys - this is deliberate to show some concepts.
+# Note that we removed the ::respawn/bin/sh we had before. All of the respawn processes will be started by order, not waiting to each other so we are good
+ttyS0::respawn:/bin/sh
+ttyS1::respawn:/bin/sh
+# tty1::respawn:/bin/sh
+# tty2::respawn:/bin/sh
+tty3::respawn:/bin/sh
+tty4::respawn:/bin/sh
+tty42::respawn:/bin/sh
+
+
 
