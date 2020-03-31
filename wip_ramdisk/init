@@ -21,11 +21,17 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 # to avoid calling the splash screen, add "nosplash" to the kernel command line
 grep -q nosplash /proc/cmdline || /usr/bin/psplash &
 
+
 # allow doing "bashrc" style stuff like aliases etc.
 # This can also be done by populating /etc/profile , however I am doing it in the following way for the sake of the example: 
 # ronenv will be a file to be populated externally (if, nothing bad will happen if it's empty). 
 # You can also just populate it yourself from your running shell e.g. # ' echo "alias ll='ls -l' > ronenv , then execute 'sh' and you will see that you will the alias in the other shell
 export ENV=ronenv 
+
+# Set up the required ttys. mdev already created them for us. 
+# You would usually want to run getty - however this is a easier solution. Later we will show how to handle exiting 
+openvt -c 1 ; openvt -c 2 ;openvt -c 3 ;openvt -c 4 ;openvt -c 42
+
 
 # get rid of annoying job control message - it is not really necessary.
 # also this is tailored for our exact scenario where we use the console as ttyS0 - be careful if you copy it to another platform, or in a graphical mode!
