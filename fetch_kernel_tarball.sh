@@ -10,6 +10,7 @@
 # needing any special documentation, and without having to really look at the presentations
 
 # Will fail if you don't have KV --> if you didnt $ . envsetup.sh first
-export REMOTE_TARBALL=https://git.kernel.org/torvalds/t/${KV}.tar.gz
+COMPRESSION=tar.xz  # Use either tar.gz or tar.xz
+export REMOTE_TARBALL=https://cdn.kernel.org/pub/linux/kernel/v5.x/${KV}.${COMPRESSION}
 wget ${REMOTE_TARBALL}
-tar xf ${KV}.tar.gz
+tar xf ${KV}.${COMPRESSION}

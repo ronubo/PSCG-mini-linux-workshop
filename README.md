@@ -38,7 +38,9 @@ For the FOSS2020 talks:
 - Very thorough kernel config walkthrough are available at https://github.com/ronubo/mini-linux-kernel-config 
   It is used (explained, and worked with) extensively in the My/The PSCG's Embedded Linux/Kernel/Research courses.
 
-
+Added bonuses (used in other training of <https://www.thepscg.com> and other talks I give)
+- busybox-init - teaches about the theory and practice of how a real-world busybox rootfs works
+- userspace-dependency-hacking-exercise-solution - explains how to make dynamically linked executables work
 
 Enjoy!
 

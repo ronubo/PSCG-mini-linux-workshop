@@ -1,7 +1,7 @@
 BASEDIR=$(pwd)
 export MACHINE=qemu
 export ARCH=x86_64
-export KV=linux-5.6-rc7
+export KV=linux-5.6.1
 export LABS=${BASEDIR}
 export KERNEL_SRC=${BASEDIR}/${KV}
 export KERNEL_OUT=${BASEDIR}/${KV}-${MACHINE}-${ARCH}-out
