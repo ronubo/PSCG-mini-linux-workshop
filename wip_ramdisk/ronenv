@@ -15,12 +15,13 @@ fi
 # Different terminals behave in a different way. With busybox we need to provide extra parameters. In gnome-terminal it will hold only until a new command is spawned. In linux console tty it's enough to just print the color once and it will remain the background from this moment and on.
 # To paint everything, also add 
 case $(tty) in  
-  /dev/tty1 ) echo -e "\e[41m\e[8]\e[j" ;; 	# paint everything after this command
-  /dev/tty3 ) echo -e "\e[42m" ;;		# should paint everything - in practice in busybox will reset after the next command
-  /dev/tty3 ) echo -e "\e[43m" ;;		# should paint everything - in practice in busybox will reset after the next command
-  /dev/tty4 ) echo -e "\e[44m\e[8]\e[H\e[J" ;;  # paint everything
-  /dev/tty5 ) echo -e "\e[45m\e[8]\e[H\e[J" ;;  # paint everything
-  /dev/tty6 ) echo -e "\e[46m\e[8]\e[H\e[J" ;;  # paint everything
+  /dev/tty1 ) echo -e "\e[41m\e[8]\e[j" ;; 	 # paint everything after this command
+  /dev/tty2 ) echo -e "\e[42m" ;;	 	 # should paint everything - in practice in busybox will reset after the next command
+  /dev/tty3 ) echo -e "\e[43m" ;; 	 	 # should paint everything - in practice in busybox will reset after the next command
+  /dev/tty4 ) echo -e "\e[44m\e[8]\e[H\e[J"  ;;  # paint everything
+  /dev/tty5 ) echo -e "\e[45m\e[8]\e[H\e[J"  ;;  # paint everything
+  /dev/tty6 ) echo -e "\e[46m\e[8]\e[H\e[J"  ;;  # paint everything
+  /dev/tty42 ) echo -e "\e[42m\e[8]\e[H\e[J" ;;  # paint everything
 esac            
 
 cat extra/banner
