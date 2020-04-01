@@ -3,7 +3,7 @@
 # if busybox (e.g. /sbin/init/ is the init file (e.g. can't execute /init or the kernel was run with "rdinit=/sbin/init"), 
 # then busybox will parse this file according to its rules.
 # 
-# We can use this file if we have ttys in order to provide and rget rid of the annoying getty messages, e.g. if there is no mdev.
+# We can use this file if we have ttys in order to provide and get rid of the annoying getty messages, e.g. if there is no mdev.
 # if this is what bothers you, and you are interested in a single user mode, you can also add "single" to the command line.
 # Here, since we don't bother to introduce the concept of "runlevels" we virtually do the same thing.
 #
@@ -12,8 +12,76 @@
 # You can also add here your own services if you want
 # e.g., if you wanted to have the banner - you could just cat here, and decide when to run it etc.
 #
-# Our example will now just run sh
+# You should play around with it and learn about the order of execution which we will not explain here.
+# What you should have in mind, is that the device creation etc. is not how you would want to do it in a real system.
+# You are likely to want to execute an init script, and then exec busybox init at its end (instead of the shell as we did before!), so that it will take care of respawning your shells on each tty.
 #
-# ::sysinit:/bin/sh		# If the shell exits, it will not be respawned (and there will not be kernel panic, as /sbin/init stil loops
-::respawn:/bin/sh
+# Order of execution: sysinit, wait,    once, (askfirst, respawn)
+#                            ^                 ^ 
+#                     synchrounous   asynchrounous (no waits here)
+#
+# Our example will do some of the main things we did in our /init script. We will build up some usage patterns, so that we 
+# can explain more concepts at each commit / see work from the shell when possible, and after a couple of commits
+# and demonstrations we will clean it up.,
+# add to it, and later clean up the usage.
+#
+#
+
+
+
+#Create the essential devices
+# Create the tty nodes
+::sysinit:/bin/mknod /dev/tty0 c 4 0
+::sysinit:/bin/mknod /dev/tty1 c 4 1
+::sysinit:/bin/mknod /dev/tty2 c 4 2
+::sysinit:/bin/mknod /dev/tty3 c 4 3
+::sysinit:/bin/mknod /dev/tty4 c 4 4
+::sysinit:/bin/mknod /dev/tty42 c 4 42
+
+::sysinit:/bin/mknod /dev/ttyS0 c 4 64
+::sysinit:/bin/mknod /dev/ttyS1 c 4 65
+::sysinit:/bin/mknod /dev/ttyS2 c 4 66
+::sysinit:/bin/mknod /dev/ttyS3 c 4 67
+
+
+# create the first frame buffer for the splash screen
+::sysinit:/bin/mknod /dev/fb0 c 29 0
+
+# /dev/null is needed for getty
+::sysinit:/bin/mknod /dev/null c 1 3
+# we want proc to be able to run ps -o pid,comm,tty and observe the ttys
+::sysinit:/bin/mount -t proc none /proc
+
+
+# We create /tmp so that we can send command to psplash from the shell. You may want to create it at sysinit (but it doesn't matter, as you will normally create and mount everything in a shell script / or populate nodes on the filesystem even prior tot it (old technique, but many still do so)
+::sysinit:/bin/mkdir /tmp
+
+::once:/usr/bin/psplash --timeout 60
+
+# if this is the only init - this will print the banner once and without a visible tty (e.g. your console) you will not see it
+# Pay attention - since it's once, it will happen after the sysinit. You could have it as sysinit and it will happen before. 
+::once:/bin/cat /extra/banner
+
+
+
+# We respawn he shell on some of the ttys - this is deliberate to show some concepts.
+# Note that we removed the ::respawn/bin/sh we had before. All of the respawn processes will be started by order, not waiting to each other so we are good
+ttyS0::respawn:/bin/sh
+ttyS1::respawn:/bin/sh
+
+# Call getty on tty1 and tty2 with autologin as root. Also add the /ron/env to the terminal 
+# However - note that the color will be set - but everything that has to do with the shell - will not.
+# You cannot export variables here - what you can do is run a script (like I do with getty-autologin.sh), and this is
+# exactly what the rc scripts do - and we are not going to cover that any more :-) 
+# In the next commit we will do something a bit different - we will use /init for our setup - and exec to /sbin/init
+tty1::once:/bin/sh /ronenv
+tty1::respawn:/extra/getty-autologin.sh /dev/tty1
+tty2::respawn:/extra/getty-autologin.sh /dev/tty2
+# tty1::respawn:/bin/sh
+# tty2::respawn:/bin/sh
+tty3::respawn:/bin/sh
+tty4::respawn:/bin/sh
+tty42::respawn:/bin/sh
+
+
 

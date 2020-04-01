@@ -54,7 +54,7 @@
 
 
 # We create /tmp so that we can send command to psplash from the shell. You may want to create it at sysinit (but it doesn't matter, as you will normally create and mount everything in a shell script / or populate nodes on the filesystem even prior tot it (old technique, but many still do so)
-::once:/bin/mkdir /tmp
+::sysinit:/bin/mkdir /tmp
 
 ::once:/usr/bin/psplash --timeout 60
 
@@ -68,6 +68,15 @@
 # Note that we removed the ::respawn/bin/sh we had before. All of the respawn processes will be started by order, not waiting to each other so we are good
 ttyS0::respawn:/bin/sh
 ttyS1::respawn:/bin/sh
+
+# Call getty on tty1 and tty2 with autologin as root. Also add the /ron/env to the terminal 
+# However - note that the color will be set - but everything that has to do with the shell - will not.
+# You cannot export variables here - what you can do is run a script (like I do with getty-autologin.sh), and this is
+# exactly what the rc scripts do - and we are not going to cover that any more :-) 
+# In the next commit we will do something a bit different - we will use /init for our setup - and exec to /sbin/init
+tty1::once:/bin/sh /ronenv
+tty1::respawn:/extra/getty-autologin.sh /dev/tty1
+tty2::respawn:/extra/getty-autologin.sh /dev/tty2
 # tty1::respawn:/bin/sh
 # tty2::respawn:/bin/sh
 tty3::respawn:/bin/sh
