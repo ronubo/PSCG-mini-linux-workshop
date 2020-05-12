@@ -1,0 +1,39 @@
+/* Working in a hacky way. Hooray! 
+   To do gdb command stuff while debugging,  use "-exec" before your commands.
+*/
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [        
+        {
+            "type": "cppdbg",            
+            "request":"launch",
+            "name": "Debug kernel after paging is enabled",
+            "program": "${workspaceRoot}/linux-5.6.7-qemu-i386-out/vmlinux",            
+            
+            "cwd": "${workspaceRoot}/linux-5.6.7-qemu-i386-out/",                        
+            "setupCommands": [
+                // what is below worked! (except for i r maybe, or maybe it did but I didnt' see)
+                {"text": "file vmlinux"}, // if it doesn't get a file, it gets upset                
+                {"text": "target remote :1234"},
+                {"text": "thbreak *0xc12bf000"},   // it's after paging was enabled, and is in the vmlinux address space - works - but with asm vscode tends to get stuck
+                {"text": "thbreak *start_kernel"},
+                {"text": "i r"},
+            ],
+
+        },
+        
+        // 
+        // Debug - but launch QEMU before
+        // you can modify the preLaunchTask (or copy paste and also change the name), to select the relevant QEMU launch method from 
+        // tasks.json for example:
+        // "preLaunchTask": "Debug bootloader and kernel (QEMU with graphic and serial)"          
+        // 
+        // TODO: check on future versions of the plugin, if someone really insists. I find it MUCH more convenient to lunch 
+        //       the target outside, and there is some (race condition?) between runninng the debugger and the emulator inside vscode
+        //       I guess this is hackable and later will be easily setup, but I'm not going to bother much more on it now
+
+    ]
+}

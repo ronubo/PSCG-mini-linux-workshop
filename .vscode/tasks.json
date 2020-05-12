@@ -1,0 +1,95 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Debug bootsector (QEMU with graphic)",
+			"type": "shell",
+			"command": "qemu-system-i386",  
+			"args": [
+				"-enable-kvm",
+				"-S",
+				"-gdb",
+				"tcp::1234", //Debugger parameters
+				"-kernel",
+				"${env:KERNEL_OUT}/arch/x86/boot/bzImage"
+			],
+			"problemMatcher": []
+		},
+		// note: you can use either ${env:VAR} or $VAR, it's the same
+		{
+			"label": "Run bootloader and kernel (QEMU with graphic and serial)",
+			"type": "shell",
+			"command": "qemu-system-i386",
+			"args": [
+				"-enable-kvm",
+				"-kernel",
+				"${env:KERNEL_OUT}/arch/x86/boot/bzImage",
+				"-initrd",
+				"${RAMDISK_PACKED}",
+				// kernel parameters
+				"-append", "\"console=ttyS0 earlycon=ttyS0 earlyprintk   ignore_loglevel nokaslr\"",
+				// list of serials
+				"-serial", "mon:stdio" // stdio- kill with ctrl-c. mon:stdio- kill with ctrl-a-x
+			],
+			"problemMatcher": []
+		},
+		// note: you can use either ${env:VAR} or $VAR, it's the same
+		{
+			"label": "Debug bootloader and kernel (QEMU with graphic and serial)",
+			"type": "shell",
+			"command": "qemu-system-i386",
+			"args": [
+				"-enable-kvm",
+				"-kernel","${env:KERNEL_OUT}/arch/x86/boot/bzImage",
+				//"-initrd","${RAMDISK_PACKED}",
+				"-initrd", "initramfs.gz",
+				// kernel parameters
+				"-append", "\"console=ttyS0 earlycon=ttyS0 earlyprintk   ignore_loglevel nokaslr\"",
+				// list of serials
+				"-serial", "mon:stdio", // stdio- kill with ctrl-c. mon:stdio- kill with ctrl-a-x
+				//Debugger options
+				"-S", "-gdb", "tcp::1234",				
+			],
+			"problemMatcher": []
+		},
+
+		{
+			"label": "Debug bootloader and kernel (QEMU with nographic)",
+			"type": "shell",
+			"command": "qemu-system-i386",
+			"args": [
+				"-enable-kvm",
+				"-kernel","${env:KERNEL_OUT}/arch/x86/boot/bzImage",
+				"-initrd","${RAMDISK_PACKED}",
+				// kernel parameters
+				"-append", "\"console=ttyS0 earlycon=ttyS0 earlyprintk   ignore_loglevel nokaslr\"",
+				// list of serials
+				"-nographic",
+				//Debugger options
+				"-S", "-gdb", "tcp::1234",
+			],
+			"problemMatcher": []
+		},
+		
+		{
+			"label": "Run with kgdb/kdb enabled (QEMU with nographic)",
+			"type": "shell",
+			"command": "qemu-system-i386",  
+					"args": [
+				"-enable-kvm",
+				"-kernel","${env:KERNEL_OUT}/arch/x86/boot/bzImage",
+				"-initrd","${RAMDISK_PACKED}",
+				// kernel parameters // better put them all in one line - do not make them different "args" - must come right after command line!
+				"-append",  "console=ttyS0 earlycon=ttyS0 earlyprintk   ignore_loglevel nokaslr\
+					     kgdboc.kgdboc=ttyS0"
+				         , 				         
+				// list of serials
+				"-nographic"
+			],
+			"problemMatcher": []
+		}		
+		//		-initrd ${RAMDISK_PACKED} -append "console=ttyS0 earlycon=ttyS0 earlyprintk   ignore_loglevel nokaslr" -enable-kvm -serial stdio -S -s
+	]
+}
