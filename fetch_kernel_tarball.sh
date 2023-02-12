@@ -10,7 +10,8 @@
 # needing any special documentation, and without having to really look at the presentations
 
 # Will fail if you don't have KV --> if you didnt $ . envsetup.sh first
+: ${KV_SERIES=v6.x}
 COMPRESSION=tar.xz  # Use either tar.gz or tar.xz
-export REMOTE_TARBALL=https://cdn.kernel.org/pub/linux/kernel/v5.x/${KV}.${COMPRESSION}
+export REMOTE_TARBALL=https://cdn.kernel.org/pub/linux/kernel/${KV_SERIES}/${KV}.${COMPRESSION}
 wget ${REMOTE_TARBALL}
 tar xf ${KV}.${COMPRESSION}

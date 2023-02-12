@@ -1,13 +1,14 @@
 BASEDIR=$(pwd)
 export MACHINE=qemu
 export ARCH=x86_64
-export KV=linux-5.6.1
+export KV_SERIES=v6.x
+export KV=linux-6.1.11
 export LABS=${BASEDIR}
 export KERNEL_SRC=${BASEDIR}/${KV}
 export KERNEL_OUT=${BASEDIR}/${KV}-${MACHINE}-${ARCH}-out
 export RAMDISK_WIP=${BASEDIR}/wip_ramdisk
 export RAMDISK_PACKED=${BASEDIR}/initramfs.gz
-export BUSYBOX_VERSION=busybox-1.31.1
+export BUSYBOX_VERSION=busybox-1.36.0
 export BUSYBOX_SRC=${BASEDIR}/${BUSYBOX_VERSION}
-export JOBS=4
+export JOBS=8
 
