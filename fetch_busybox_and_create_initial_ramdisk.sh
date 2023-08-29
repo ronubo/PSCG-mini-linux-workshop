@@ -1,27 +1,50 @@
 #!/bin/bash
 
-if [ ! "$1" == "dontbuild" ] ; then
-wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
-tar xf ${BUSYBOX_VERSION}.tar.bz2
+# Simple custom root file system using only busybox shell. This is meant mostly for cross compiling, but you can set it to build for your native target
+# For cross compiling, you must provide the following environment variables: ARCH, CROSS_COMPILE
+#
+: ${BUSYBOX_VERSION=busybox-1.36.0}
+: ${DEFCONFIG=defconfig}
+: ${JOBS=$(nproc)}
 
-# Build for x86_64 target (or for whatever your host ARCH is)
-cd ${BUSYBOX_VERSION}/
-make defconfig
-sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
-if [ "${ARCH}" == "i386" ] ; then
-CPPFLAGS=-m32 LDFLAGS=-m32 make -j16 CONFIG_PREFIX=../wip_ramdisk install
-else
-make -j16 CONFIG_PREFIX=../wip_ramdisk install
+# We will just warn
+[ -z "$CROSS_COMPILE" ] && { echo "Building using native toolchains. If you didn't mean that, please specify your CROSS_COMPILE= variable" ; }
+[ -z "$ARCH" ] && { echo "Building for your native architecture $(arch). If you didn't mean that, please specify your ARCH= variable" ; }
+
+fetch=true
+untar=true
+config=true
+build=true
+
+for arg in $@ ; do
+	case $arg in
+		dontfetch)	fetch=false	;;
+		dontuntar)	untar=false	;;
+		dontconfig) 	config=false 	;;
+		dontbuild) 	build=false 	;;
+	esac
+done
+
+if [ $fetch = true ] ; then
+	wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
+elif [ $untar = true ] ; then
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
 fi
-cd ..
 
-
-else # Just populate the ramdisk, don't fetch/unpack/build
-make -C $BUSYBOX_VERSION CONFIG_PREFIX=../wip_ramdisk install
+if [ $config = true ] ; then
+	# Build for x86_64 target (or for whatever your host ARCH is)
+	cd ${BUSYBOX_VERSION}/
+	make $DEFCONFIG
+	sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
+	cd ..
 fi
 
+if [ $build = true ] ; then
+	make -C $BUSYBOX_VERSION CONFIG_PREFIX=$RAMDISK_WIP install -j$JOBS
+fi
 
-# Create an initial directory structure 
+# Create an initial directory structure
 mkdir -p wip_ramdisk/{lib,proc,sys,dev,mnt,xbin}
 
 # Populate init script
