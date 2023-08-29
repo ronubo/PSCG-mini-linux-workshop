@@ -34,7 +34,7 @@ mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t debugfs none /sys/kernel/debug
 
-echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in \$(cut -d' ' -f1 /proc/uptime) seconds\n"
+echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in \$(cut -d' ' -f1 /proc/uptime) seconds on \$(arch)\n"
 
 # Enable sysfs / dev initial enumeration
 mdev -s
@@ -51,7 +51,10 @@ export ENV=ronenv
 # get rid of annoying job control message - it is not really necessary.
 # also this is tailored for our exact scenario where we use the console as ttyS0 - be careful if you copy it to another platform, or in a graphical mode!
 # For a more elegant solution, use cttyhack; https://git.busybox.net/busybox/plain/shell/cttyhack.c?id=dcaed97
-exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'
+#exec setsid sh -c 'exec sh </dev/console >/dev/console 2>&1' # this will not work, although it is tempting to do so
+#exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'     # use this for qemu with x86
+#exec setsid sh -c 'exec sh </dev/ttyAMA0 > /dev/ttyAMA0 2>&1' # use this for qemu with aarch64 and virt
+exec setsid cttyhack sh
 
 # Whatever is here will not run if you do not comment the previous line, because exec replaces the image.
 # Extra notes for demonstration: Comment the above (setsid line) if you run qemu with graphical mode and you want to use the console. Otherwise, you will think the console gets stuck - while it doesn't.
