@@ -12,7 +12,7 @@
 # Will fail if you don't have KV --> if you didnt $ . envsetup.sh first
 #
 # This version now illustrates the use of config fragments, as well as what works well with the make/Kconfig and what doesn't work as well (but is not so important and one can definitely live without)
-make -C ${KERNEL_SRC} O=${KERNEL_OUT} defconfig kvmconfig
+make -C ${KERNEL_SRC} O=${KERNEL_OUT} defconfig # Note: kvmconfig is deprecated in recent kernel, otherwise chain two targets in this line (e.g. make ... defconfig kvmconfig)
 cd ${KERNEL_OUT}
 ${KERNEL_SRC}/scripts/kconfig/merge_config.sh .config ${LABS}/kernel-configs/kernel-debug-fragment.config
 make -j${JOBS}
