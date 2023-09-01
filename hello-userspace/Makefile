@@ -29,13 +29,17 @@ else
   $(error TARGET must be either 'local', 'qemu' or 'arm')
 endif
 
+# This is a hacky fixup for host toolchains that do not have <tuple>-"cc". We select gcc, we could have selected clang as well
+ifneq ($(CROSS_COMPILE),"")
+	CC=gcc
+endif
 
 default: userspace_install
 userspace_install: hello.c
-	gcc -g hello.c -o hello
+	$(CROSS_COMPILE)$(CC) -g hello.c -o hello
 	cp hello ${RAMDISK_WIP}/xbin
 userspace_static_install: hello.c
-	gcc -g hello.c -o hello_static -static
+	$(CROSS_COMPILE)$(CC) -g hello.c -o hello_static -static
 	cp hello_static ${RAMDISK_WIP}/xbin
 userspace_all: userspace_install userspace_static_install
 	
