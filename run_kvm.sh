@@ -16,4 +16,8 @@ if [ "$ARCH" = "x86_64" ] ; then
 elif [ "$ARCH" = "arm64" -o "$ARCH" = "aarch64" ] ; then
 	: ${IMAGE_TYPE=Image} # for non x86 architectures, you may want to experiment with more image types
 	qemu-system-aarch64     -kernel ${KERNEL_OUT}/arch/arm64/boot/${IMAGE_TYPE} -M virt -cpu cortex-a72 -initrd ${RAMDISK_PACKED} -nographic -append "console=ttyAMA0 kgdboc.kgdboc=ttyAMA0"
+elif [ "$ARCH" = "riscv64" -o "$ARCH" = "riscv" ] ; then
+	: ${IMAGE_TYPE=Image} # for non x86 architectures, you may want to experiment with more image types
+	# At this time, just not specifying a cpu is fine, but you can experiment with those as well
+	qemu-system-riscv64     -kernel ${KERNEL_OUT}/arch/riscv/boot/${IMAGE_TYPE} -M virt -cpu sifive-u54 -initrd ${RAMDISK_PACKED} -nographic -append "console=ttyS0 kgdboc.kgdboc=ttyS0"
 fi
