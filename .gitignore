@@ -10,4 +10,4 @@ linux-*
 busybox-1.*
 initramfs.cpio
 initramfs.gz
-
+wip_ramdisk
