@@ -16,6 +16,12 @@
 # export PATH=$PATH:$HOME/resources/aarch64/x-tools/riscv64-thepscg.com-linux-gnu/bin/
 # export CROSS_COMPILE=riscv64-thepscg.com-linux-gnu-
 
+if [ "$1" = "--force-local-architecture" ] ; then
+	echo "Will unset ARCH and CROSS_COMPILE, in case you have set then elsewhere. Just FYI they were $CROSS_COMPILE / $ARCH respectively"
+	unset ARCH
+	unset CROSS_COMPILE
+fi
+
 #
 # Autoset target architecture to the host one. Done by default for faster illustrations. This is absolutely not necessary
 #
@@ -35,7 +41,7 @@ fi
 BASEDIR=$(pwd)
 export MACHINE=qemu
 export KV_SERIES=v6.x
-export KV=linux-6.6.2
+export KV=linux-6.6.4
 export LABS=${BASEDIR}
 export KERNEL_SRC=${BASEDIR}/${KV}
 export KERNEL_OUT=${BASEDIR}/${KV}-${MACHINE}-${ARCH}-out
