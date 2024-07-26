@@ -1,27 +1,50 @@
 #!/bin/bash
 
-if [ ! "$1" == "dontbuild" ] ; then
-wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
-tar xf ${BUSYBOX_VERSION}.tar.bz2
+# Simple custom root file system using only busybox shell. This is meant mostly for cross compiling, but you can set it to build for your native target
+# For cross compiling, you must provide the following environment variables: ARCH, CROSS_COMPILE
+#
+: ${BUSYBOX_VERSION=busybox-1.36.0}
+: ${DEFCONFIG=defconfig}
+: ${JOBS=$(nproc)}
 
-# Build for x86_64 target (or for whatever your host ARCH is)
-cd ${BUSYBOX_VERSION}/
-make defconfig
-sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
-if [ "${ARCH}" == "i386" ] ; then
-CPPFLAGS=-m32 LDFLAGS=-m32 make -j16 CONFIG_PREFIX=../wip_ramdisk install
-else
-make -j16 CONFIG_PREFIX=../wip_ramdisk install
+# We will just warn
+[ -z "$CROSS_COMPILE" ] && { echo "Building using native toolchains. If you didn't mean that, please specify your CROSS_COMPILE= variable" ; }
+[ -z "$ARCH" ] && { echo "Building for your native architecture $(arch). If you didn't mean that, please specify your ARCH= variable" ; }
+
+fetch=true
+untar=true
+config=true
+build=true
+
+for arg in $@ ; do
+	case $arg in
+		dontfetch)	fetch=false	;;
+		dontuntar)	untar=false	;;
+		dontconfig) 	config=false 	;;
+		dontbuild) 	build=false 	;;
+	esac
+done
+
+if [ $fetch = true ] ; then
+	wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
+elif [ $untar = true ] ; then
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
 fi
-cd ..
 
-
-else # Just populate the ramdisk, don't fetch/unpack/build
-make -C $BUSYBOX_VERSION CONFIG_PREFIX=../wip_ramdisk install
+if [ $config = true ] ; then
+	# Build for x86_64 target (or for whatever your host ARCH is)
+	cd ${BUSYBOX_VERSION}/
+	make $DEFCONFIG
+	sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
+	cd ..
 fi
 
+if [ $build = true ] ; then
+	make -C $BUSYBOX_VERSION CONFIG_PREFIX=$RAMDISK_WIP install -j$JOBS
+fi
 
-# Create an initial directory structure 
+# Create an initial directory structure
 mkdir -p wip_ramdisk/{lib,proc,sys,dev,mnt,xbin}
 
 # Populate init script
@@ -34,7 +57,7 @@ mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t debugfs none /sys/kernel/debug
 
-echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in \$(cut -d' ' -f1 /proc/uptime) seconds\n"
+echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in \$(cut -d' ' -f1 /proc/uptime) seconds on \$(arch)\n"
 
 # Enable sysfs / dev initial enumeration
 mdev -s
@@ -51,7 +74,10 @@ export ENV=ronenv
 # get rid of annoying job control message - it is not really necessary.
 # also this is tailored for our exact scenario where we use the console as ttyS0 - be careful if you copy it to another platform, or in a graphical mode!
 # For a more elegant solution, use cttyhack; https://git.busybox.net/busybox/plain/shell/cttyhack.c?id=dcaed97
-exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'
+#exec setsid sh -c 'exec sh </dev/console >/dev/console 2>&1' # this will not work, although it is tempting to do so
+#exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'     # use this for qemu with x86
+#exec setsid sh -c 'exec sh </dev/ttyAMA0 > /dev/ttyAMA0 2>&1' # use this for qemu with aarch64 and virt
+exec setsid cttyhack sh
 
 # Whatever is here will not run if you do not comment the previous line, because exec replaces the image.
 # Extra notes for demonstration: Comment the above (setsid line) if you run qemu with graphical mode and you want to use the console. Otherwise, you will think the console gets stuck - while it doesn't.
