@@ -41,7 +41,7 @@ fi
 BASEDIR=$(pwd)
 export MACHINE=qemu
 export KV_SERIES=v6.x
-export KV=linux-6.6.4
+export KV=linux-6.10.1
 export LABS=${BASEDIR}
 export KERNEL_SRC=${BASEDIR}/${KV}
 export KERNEL_OUT=${BASEDIR}/${KV}-${MACHINE}-${ARCH}-out
