@@ -1,31 +1,62 @@
 #!/bin/bash
 
-if [ ! "$1" == "dontbuild" ] ; then
-wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
-tar xf ${BUSYBOX_VERSION}.tar.bz2
+# Simple custom root file system using only busybox shell. This is meant mostly for cross compiling, but you can set it to build for your native target
+# For cross compiling, you must provide the following environment variables: ARCH, CROSS_COMPILE
+#
+: ${BUSYBOX_VERSION=busybox-1.36.0}
+: ${DEFCONFIG=defconfig}
+: ${JOBS=$(nproc)}
 
-# Build for x86_64 target (or for whatever your host ARCH is)
-cd ${BUSYBOX_VERSION}/
-make defconfig
-sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
-if [ "${ARCH}" == "i386" ] ; then
-CPPFLAGS=-m32 LDFLAGS=-m32 make -j16 CONFIG_PREFIX=../wip_ramdisk install
-else
-make -j16 CONFIG_PREFIX=../wip_ramdisk install
+# We will just warn
+[ -z "$CROSS_COMPILE" ] && { echo "Building using native toolchains. If you didn't mean that, please specify your CROSS_COMPILE= variable" ; }
+[ -z "$ARCH" ] && { echo "Building for your native architecture $(arch). If you didn't mean that, please specify your ARCH= variable" ; }
+
+fetch=true
+untar=true
+config=true
+build=true
+
+for arg in $@ ; do
+	case $arg in
+		dontfetch)	fetch=false	;;
+		dontuntar)	untar=false	;;
+		dontconfig) 	config=false 	;;
+		dontbuild) 	build=false 	;;
+	esac
+done
+
+if [ $fetch = true ] ; then
+	wget https://busybox.net/downloads/${BUSYBOX_VERSION}.tar.bz2
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
+elif [ $untar = true ] ; then
+	tar xf ${BUSYBOX_VERSION}.tar.bz2
 fi
-cd ..
 
-
-else # Just populate the ramdisk, don't fetch/unpack/build
-make -C $BUSYBOX_VERSION CONFIG_PREFIX=../wip_ramdisk install
+if [ $config = true ] ; then
+	# Build for x86_64 target (or for whatever your host ARCH is)
+	cd ${BUSYBOX_VERSION}/
+	make $DEFCONFIG
+	sed -i 's:# CONFIG_STATIC is not set:CONFIG_STATIC=y:' .config
+	cd ..
 fi
 
+if [ $build = true ] ; then
+	# Note that this requires multilib (which will force you remove other distro installed cross-compilers), and i386 packages. 
+	# busybox 1.36.1 wants libcrypt which has no trivial i386 package in recent Ubuntu distros,
+	# so this is not recommended. better install an i386/i586/i686/... cross toolchain.
+	if [ "${ARCH}" = "i386" -a -z "$CROSS_COMPILE" -a "$(arch)" = "x86_64" ] ; then
+		CPPFLAGS=-m32 LDFLAGS=-m32 make -C $BUSYBOX_VERSION -j16 CONFIG_PREFIX=$RAMDISK_WIP install
+	else
+		make -C $BUSYBOX_VERSION CONFIG_PREFIX=$RAMDISK_WIP install -j$JOBS
+	fi
+fi
 
 # Create an initial directory structure 
-mkdir -p wip_ramdisk/{lib,proc,sys,dev,mnt,xbin}
+mkdir -p $RAMDISK_WIP/{lib,proc,sys,dev,mnt,xbin,tmp}
+chmod +t  $RAMDISK_WIP/tmp
 
 # Populate init script
-cat > wip_ramdisk/init << "EOF"
+cat > $RAMDISK_WIP/init << "EOF"
 #!/bin/sh
 
 # If ramdisk doesn't come with premade empty proc sys dev folders - you can mkdir them here.
@@ -33,8 +64,6 @@ cat > wip_ramdisk/init << "EOF"
 mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t debugfs none /sys/kernel/debug
-mkdir /tmp
-chmod +t /tmp
 
 echo -e "\n\033[0;32m The PSCG mini-linux\033[0m booted in $(cut -d' ' -f1 /proc/uptime) seconds\n"
 
@@ -90,6 +119,6 @@ exec setsid cttyhack sh # 'exec setsid sh </dev/ttyS0 >/dev/ttyS0 2>&1'
 exec /bin/sh
 EOF
 
-chmod +x wip_ramdisk/init # Omit from full courses - explain briefly in short talks
+chmod +x $RAMDISK_WIP/init # Omit from full courses - explain briefly in short talks
 # Repackage the ramdisk
 exec ./repack_ramdisk.sh
