@@ -94,8 +94,15 @@ fi
 
 # You could communicate with psplash (which is either run from inittab or here, depending if /sbin/init is chosen, so we "start communicating" before we run it)
 # by doing something like the next line. You can also choose to avoid it.
-# The next line means the timeout 10 I put if you run psplash from here, will not be met becuase we give it less time
-( for i in $(seq 10 5 100) ; do echo -e "PROGRESS $i\0" > /tmp/psplash_fifo ; sleep 0.1 ; done ; echo "QUIT" > /tmp/psplash_fifo) &
+# The next line means the timeout 10, that I put if you run psplash from this init file, will not be met becuase we give it less time.
+if ! grep -q nosplash /proc/cmdline && [ -x /usr/bin/psplash ] ; then
+	[ -p /tmp/psplash_fifo ] || mkfifo /tmp/psplash_fifo
+
+	# We can also use /extra/progress_psplash.sh - it waits longer and displays some text.
+	# Anyway, do note that the current version has psplash built only for x86_64, so no point in bothering too much about it
+	# /extra/progress_splash.sh &
+	( for i in $(seq 10 5 100) ; do echo -e "PROGRESS $i\0" > /tmp/psplash_fifo ; sleep 0.1 ; done ; echo "QUIT" > /tmp/psplash_fifo) &
+fi
 
 
 # Comment out if you do not wish to do the logic in inittab
@@ -111,11 +118,14 @@ grep -q nosplash /proc/cmdline || /usr/bin/psplash --timeout 10 &
 # get rid of annoying job control message - it is not really necessary.
 # also this is tailored for our exact scenario where we use the console as ttyS0 - be careful if you copy it to another platform, or in a graphical mode!
 # For a more elegant solution, use cttyhack; https://git.busybox.net/busybox/plain/shell/cttyhack.c?id=dcaed97
-exec setsid cttyhack sh # 'exec setsid sh </dev/ttyS0 >/dev/ttyS0 2>&1'
+#exec setsid sh -c 'exec sh </dev/console >/dev/console 2>&1' # this will not work, although it is tempting to do so
+#exec setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'     # use this for qemu with x86
+#exec setsid sh -c 'exec sh </dev/ttyAMA0 > /dev/ttyAMA0 2>&1' # use this for qemu with aarch64 and virt
+exec setsid cttyhack sh
 
 # Whatever is here will not run if you do not comment the previous line, because exec replaces the image.
 # Extra notes for demonstration: Comment the above (setsid line) if you run qemu with graphical mode and without the cttyhack and you want to use the console. Otherwise, you will think the console gets stuck - while it doesn't.
-#
+
 exec /bin/sh
 EOF
 
